@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Event</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- CSS Files -->
+  <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/css/fontawesome.css}">
+  <link rel="stylesheet" th:href="@{/css/themify-icons.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/responsive.css}">
+
+  <style>
+    body {
+      background-color: #0b0c2a;
+      color: #fff;
+    }
+
+    .form-area {
+      padding: 80px 0;
+    }
+
+    .form-wrapper {
+      background-color: rgba(255, 255, 255, 0.03);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+    }
+
+    .form-control, .form-select, textarea {
+      background-color: #14163d;
+      color: #fff;
+      border: 1px solid #2c2f6c;
+    }
+
+    .form-control:focus {
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    label {
+      margin-top: 15px;
+    }
+
+    .boxed-btn3 {
+      background: #ff3d57;
+      color: #fff;
+      border-radius: 30px;
+      padding: 10px 30px;
+      font-weight: 600;
+      border: none;
+      transition: 0.3s;
+    }
+
+    .boxed-btn3:hover {
+      background: #0056b3;
+      color: white;
+    }
+
+    table th, table td {
+      color: #fff;
+    }
+
+    .btn-sm {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+<section class="form-area">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-12">
+        <div class="form-wrapper">
+          <h2 class="text-center text-white mb-4">Add New Event</h2>
+          <form th:action="@{/event/upload}" method="post" enctype="multipart/form-data" th:object="${event}">
+
+            <!-- Title -->
+            <div class="mb-3">
+              <label>Event Title</label>
+              <input type="text" th:field="*{title}" class="form-control" required />
+            </div>
+
+            <!-- Date -->
+            <div class="mb-3">
+              <label>Event Date</label>
+              <input type="date" th:field="*{date}" class="form-control" required />
+            </div>
+
+            <!-- Location -->
+            <div class="mb-3">
+              <label>Event Venue</label>
+              <input type="text" th:field="*{location}" class="form-control" required />
+            </div>
+
+            <!-- Image -->
+            <div class="mb-3">
+              <label>Event Image (.jpg only)</label>
+              <input type="file" name="image" accept=".jpg,.jpeg" class="form-control" required />
+            </div>
+
+            <!-- Questions Table -->
+            <div class="mb-4">
+              <label>Registration Questions</label>
+              <table class="table table-bordered bg-dark text-white" id="questionsTable">
+                <thead>
+                <tr>
+                  <th>Question</th>
+                  <th>Type</th>
+                  <th>Options (comma-separated)</th>
+                  <th>Action</th>
+                </tr>
+                </thead>
+                <tbody id="questionsBody">
+                <tr>
+                  <td><input type="text" class="form-control question-text" required></td>
+                  <td>
+                    <select class="form-select question-type" onchange="toggleOptionField(this)" required>
+                      <option value="text">Text</option>
+                      <option value="yesno">Yes/No</option>
+                      <option value="number">Number</option>
+                      <option value="checkbox">Checkbox</option>
+                      <option value="radiobox">Radio Button</option>
+                      <option value="dropdown">Dropdown</option>
+                    </select>
+                  </td>
+                  <td><input type="text" class="form-control question-options" placeholder="e.g. Option1,Option2" style="display:none;"></td>
+                  <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button></td>
+                </tr>
+                </tbody>
+              </table>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="addQuestionRow()">+ Add Question</button>
+            </div>
+
+            <!-- Add this hidden field to hold questions JSON -->
+            <input type="hidden" name="questionsJson" id="questionsJson" />
+
+            <!-- Submit -->
+            <div class="text-center">
+              <button type="submit" class="boxed-btn3">Create Event</button>
+            </div>
+          </form>
+
+          <!-- Cancel -->
+          <div class="text-center mt-3">
+            <a th:href="@{/event}" class="btn btn-outline-light">Cancel</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  let questionIndex = 1;
+
+  function addQuestionRow() {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><input type="text" class="form-control question-text" required></td>
+      <td>
+        <select class="form-select question-type" onchange="toggleOptionField(this)" required>
+          <option value="text">Text</option>
+          <option value="yesno">Yes/No</option>
+          <option value="number">Number</option>
+          <option value="checkbox">Checkbox</option>
+          <option value="radiobox">Radio Button</option>
+          <option value="dropdown">Dropdown</option>
+        </select>
+      </td>
+      <td><input type="text" class="form-control question-options" placeholder="e.g. Option1,Option2" style="display:none;"></td>
+      <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button></td>
+    `;
+    document.getElementById("questionsBody").appendChild(row);
+    questionIndex++;
+  }
+
+  function removeRow(btn) {
+    btn.closest("tr").remove();
+  }
+
+  function toggleOptionField(select) {
+    const type = select.value;
+    const optionsInput = select.closest("tr").querySelector(".question-options");
+    if (["checkbox", "radiobox", "dropdown"].includes(type)) {
+      optionsInput.style.display = "block";
+      optionsInput.required = true;
+    } else {
+      optionsInput.style.display = "none";
+      optionsInput.required = false;
+    }
+  }
+
+  function gatherQuestionsAsJson() {
+    const rows = document.querySelectorAll("#questionsBody tr");
+    const questions = [];
+
+    rows.forEach(row => {
+      const question = row.querySelector(".question-text").value.trim();
+      const type = row.querySelector(".question-type").value;
+      const optionsInput = row.querySelector(".question-options");
+      const options = optionsInput && optionsInput.value.trim() !== ""
+        ? optionsInput.value.split(",").map(opt => opt.trim())
+        : [];
+
+      questions.push({ question, type, options });
+    });
+
+    document.getElementById("questionsJson").value = JSON.stringify(questions);
+  }
+
+  // Attach before form submits
+  document.querySelector("form").addEventListener("submit", gatherQuestionsAsJson);
+</script>
+</body>
+</html>

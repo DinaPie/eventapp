@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Register for Event</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- CSS -->
+  <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/responsive.css}">
+
+  <style>
+    body {
+      background-color: #0b0c2a;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .form-area {
+      padding: 100px 0;
+    }
+
+    .form-wrapper {
+      background-color: rgba(255, 255, 255, 0.03);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+    }
+
+    .form-control, .form-select {
+      background-color: #14163d;
+      color: #fff;
+      border: 1px solid #2c2f6c;
+    }
+
+    .form-control:focus, .form-select:focus {
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    label {
+      margin-top: 20px;
+    }
+
+    .boxed-btn3 {
+      background: #ff3d57;
+      color: #fff;
+      border-radius: 30px;
+      padding: 10px 30px;
+      font-weight: 600;
+      border: none;
+      transition: 0.3s;
+    }
+
+    .boxed-btn3:hover {
+      background: #0056b3;
+      color: white;
+    }
+
+    .btn-outline-light {
+      border-radius: 30px;
+      padding: 8px 25px;
+    }
+
+    .question-block {
+      margin-bottom: 20px;
+    }
+
+    input[type="radio"], input[type="checkbox"] {
+      margin-right: 8px;
+    }
+
+    .form-check-input {
+      margin-top: 0.1rem; /* align vertically */
+    }
+
+    .form-check-label {
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<section class="form-area">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="form-wrapper">
+          <h2 class="text-center text-white mb-4" th:text="'Register for ' + ${event.title}">Register for Event</h2>
+
+          <form th:action="@{/registration/save}" th:object="${registration}" method="post">
+            <input type="hidden" th:field="*{eventId}" />
+            <input type="hidden" th:field="*{eventTitle}" />
+
+            <!-- Basic Info -->
+            <div class="mb-3">
+              <label>Full Name</label>
+              <input type="text" th:field="*{fullName}" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+              <label>Email</label>
+              <input type="email" th:field="*{email}" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+              <label>Phone</label>
+              <input type="text" th:field="*{phone}" class="form-control" required>
+            </div>
+
+            <!-- Dynamic Questions -->
+            <div th:each="question, iter : ${event.questions}" class="question-block">
+              <label th:text="${question.question}"></label>
+
+              <div th:switch="${question.type}">
+                <!-- Text -->
+                <div th:case="'text'">
+                  <input type="text" th:field="*{answers[__${iter.index}__].answer}" class="form-control" required>
+                </div>
+
+                <!-- Number -->
+                <div th:case="'number'">
+                  <input type="number" th:field="*{answers[__${iter.index}__].answer}" class="form-control" required>
+                </div>
+
+                <!-- Yes/No -->
+                <div th:case="'yesno'">
+                  <select th:field="*{answers[__${iter.index}__].answer}" class="form-select" required>
+                    <option value="">-- Select --</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+
+                <!-- Radio -->
+                <div th:case="'radiobox'">
+                  <div class="d-flex flex-column gap-2">
+                    <div class="form-check d-flex align-items-center mb-2" th:each="opt : ${#strings.arraySplit(#strings.replace(#strings.replace(question.options, '[', ''), ']', ''), ',')}">
+                      <input class="form-check-input me-2 mt-0"
+                             type="radio"
+                             th:field="*{answers[__${iter.index}__].answer}"
+                             th:value="${opt.trim()}"
+                             id="radio__${iter.index}__${opt.hashCode()}"
+                             required>
+                      <label class="form-check-label text-white mb-0"
+                             th:for="'radio__' + ${iter.index} + '__' + ${opt.hashCode()}"
+                             th:text="${opt.trim()}">
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Checkbox -->
+                <div th:case="'checkbox'">
+                  <div th:each="opt : ${#strings.arraySplit(#strings.replace(#strings.replace(question.options, '[', ''), ']', ''), ',')}">
+                    <div class="form-check">
+                      <input class="form-check-input"
+                             type="checkbox"
+                             th:field="*{answers[__${iter.index}__].answerList}"
+                             th:value="${opt.trim()}">
+                      <label class="form-check-label text-white" th:text="${opt.trim()}"></label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dropdown -->
+                <div th:case="'dropdown'">
+                  <select th:field="*{answers[__${iter.index}__].answer}" class="form-select" required>
+                    <option value="">-- Select --</option>
+                    <option th:each="opt : ${#strings.arraySplit(#strings.replace(#strings.replace(question.options, '[', ''), ']', ''), ',')}"
+                            th:value="${opt.trim()}" th:text="${opt.trim()}">
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="text-center mt-4">
+              <button type="submit" class="boxed-btn3">Submit Registration</button>
+            </div>
+          </form>
+
+          <!-- Back Link -->
+          <div class="text-center mt-3">
+            <a th:href="@{/event-page}" class="btn btn-outline-light">← Back to Events</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

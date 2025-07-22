@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Event</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- CSS Files -->
+  <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/css/fontawesome.css}">
+  <link rel="stylesheet" th:href="@{/css/themify-icons.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/responsive.css}">
+
+  <style>
+    body {
+      background-color: #0b0c2a;
+      color: #fff;
+    }
+
+    .form-area {
+      padding: 80px 0;
+    }
+
+    .form-wrapper {
+      background-color: rgba(255, 255, 255, 0.03);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+    }
+
+    .form-control, .form-select, textarea {
+      background-color: #14163d;
+      color: #fff;
+      border: 1px solid #2c2f6c;
+    }
+
+    .form-control:focus {
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    .boxed-btn3 {
+      background: #ff3d57;
+      color: #fff;
+      border-radius: 30px;
+      padding: 10px 30px;
+      font-weight: 600;
+      border: none;
+      transition: 0.3s;
+    }
+
+    .boxed-btn3:hover {
+      background: #0056b3;
+      color: white;
+    }
+
+    table th, table td {
+      color: #fff;
+    }
+
+    .btn-sm {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+<section class="form-area">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-12">
+        <div class="form-wrapper">
+          <h2 class="text-center text-white mb-4">Edit Event</h2>
+          <form th:action="@{'/event/edit/' + ${event.id}}" method="post" enctype="multipart/form-data" th:object="${event}">
+
+            <!-- Title -->
+            <div class="mb-3">
+              <label>Title</label>
+              <input type="text" th:field="*{title}" class="form-control" required />
+            </div>
+
+            <!-- Date -->
+            <div class="mb-3">
+              <label>Date</label>
+              <input type="date" th:field="*{date}" class="form-control" required />
+            </div>
+
+            <!-- Location -->
+            <div class="mb-3">
+              <label>Location</label>
+              <input type="text" th:field="*{location}" class="form-control" required />
+            </div>
+
+            <!-- Current Image -->
+            <div class="mb-3">
+              <label>Current Image</label><br>
+              <img th:src="@{${event.imageUrl}}" alt="Event Image" style="max-width: 200px;" />
+            </div>
+
+            <!-- Upload New Image -->
+            <div class="mb-3">
+              <label>Upload New Image (.jpg only)</label>
+              <input type="file" name="image" accept=".jpg,.jpeg" class="form-control" />
+            </div>
+
+            <!-- Questions Table -->
+            <div class="mb-4">
+              <label>Registration Questions</label>
+              <table class="table table-bordered bg-dark text-white" id="questionsTable">
+                <thead>
+                <tr>
+                  <th>Question</th>
+                  <th>Type</th>
+                  <th>Options (comma-separated)</th>
+                  <th>Action</th>
+                </tr>
+                </thead>
+                <tbody id="questionsBody">
+                <tr th:each="q : ${event.questions}">
+                  <td>
+                    <input type="text" class="form-control" required th:value="${q.question}" data-type="question">
+                  </td>
+                  <td>
+                    <select class="form-select" onchange="toggleOptionField(this)" required data-type="type">
+                      <option value="text" th:selected="${q.type == 'text'}">Text</option>
+                      <option value="yesno" th:selected="${q.type == 'yesno'}">Yes/No</option>
+                      <option value="number" th:selected="${q.type == 'number'}">Number</option>
+                      <option value="checkbox" th:selected="${q.type == 'checkbox'}">Checkbox</option>
+                      <option value="radiobox" th:selected="${q.type == 'radiobox'}">Radio Button</option>
+                      <option value="dropdown" th:selected="${q.type == 'dropdown'}">Dropdown</option>
+                    </select>
+                  </td>
+                  <td>
+                    <input type="text"
+                           class="form-control"
+                           placeholder="e.g. Option1,Option2"
+                           th:value="${#strings.listJoin(q.options, ',')}"
+                           th:style="${q.type == 'checkbox' or q.type == 'radiobox' or q.type == 'dropdown'} ? '' : 'display:none;'"
+                           data-type="options">
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="addQuestionRow()">+ Add Question</button>
+            </div>
+
+            <input type="hidden" name="questionsJson" id="questionsJson" />
+
+            <!-- Submit -->
+            <div class="text-center">
+              <button type="submit" class="boxed-btn3">Save Changes</button>
+            </div>
+          </form>
+
+          <!-- Cancel -->
+          <div class="text-center mt-3">
+            <a th:href="@{/event}" class="btn btn-outline-light">Cancel</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- JS -->
+<script>
+  let questionIndex = [[${#lists.size(event.questions)}]];
+
+  function addQuestionRow() {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><input type="text" class="form-control" data-type="question" required></td>
+      <td>
+        <select class="form-select" onchange="toggleOptionField(this)" data-type="type" required>
+          <option value="text">Text</option>
+          <option value="yesno">Yes/No</option>
+          <option value="number">Number</option>
+          <option value="checkbox">Checkbox</option>
+          <option value="radiobox">Radio Button</option>
+          <option value="dropdown">Dropdown</option>
+        </select>
+      </td>
+      <td><input type="text" class="form-control" placeholder="e.g. Option1,Option2" data-type="options" style="display:none;"></td>
+      <td>
+        <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button>
+      </td>
+    `;
+    document.getElementById("questionsBody").appendChild(row);
+  }
+
+
+  function removeRow(btn) {
+    const row = btn.closest("tr");
+    row.remove();
+  }
+
+  function toggleOptionField(select) {
+    const type = select.value;
+    const row = select.closest("tr");
+    const optionsInput = row.querySelector('[data-type="options"]');
+    if (["checkbox", "radiobox", "dropdown"].includes(type)) {
+      optionsInput.style.display = "block";
+      optionsInput.required = true;
+    } else {
+      optionsInput.style.display = "none";
+      optionsInput.required = false;
+    }
+  }
+
+  // Initialize visibility of options fields on page load
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("#questionsBody select").forEach(toggleOptionField);
+  });
+
+  document.querySelector("form").addEventListener("submit", function () {
+    const rows = document.querySelectorAll("#questionsBody tr");
+    const questions = [];
+
+    rows.forEach(row => {
+      const question = row.querySelector('[data-type="question"]').value;
+      const type = row.querySelector('[data-type="type"]').value;
+      const optionsField = row.querySelector('[data-type="options"]');
+      const options = (optionsField && optionsField.style.display !== "none")
+        ? optionsField.value.split(',').map(opt => opt.trim()).filter(opt => opt !== "")
+        : [];
+
+      questions.push({ question, type, options });
+    });
+
+    document.getElementById("questionsJson").value = JSON.stringify(questions);
+  });
+</script>
+</body>
+</html>

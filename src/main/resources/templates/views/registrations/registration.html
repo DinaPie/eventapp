@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/AdminLayout}">
+<head>
+    <title>Registration Events</title>
+    <style>
+        .table-container {
+          padding: 100px 0;
+          background-color: #0b0c2a;
+          color: white;
+        }
+
+        table th, table td {
+          vertical-align: middle !important;
+          text-align: center;
+        }
+
+        .action-buttons a, .action-buttons form {
+          display: inline-block;
+          margin: 0 5px;
+        }
+
+        .btn-edit {
+          background-color: #ffb703;
+          color: white;
+          border: none;
+          padding: 6px 12px;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+
+        .btn-delete {
+          background-color: #ff3d57;
+          color: white;
+          border: none;
+          padding: 6px 12px;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- SLIDER AREA -->
+    <div class="slider_area dashboard">
+        <div class="single_slider d-flex align-items-center slider_bg_1 overlay">
+            <div class="container">
+                <div class="row align-items-center justify-content-center">
+                    <div class="col-xl-12">
+                        <div class="slider_text text-center">
+                            <div class="shape_1 wow fadeInUp" data-wow-duration="1s" data-wow-delay=".2s">
+                                <img src="img/shape/shape_1.svg" alt="">
+                            </div>
+                            <div class="shape_2 wow fadeInDown" data-wow-duration="1s" data-wow-delay=".2s">
+                                <img src="img/shape/shape_2.svg" alt="">
+                            </div>
+                            <h3 class="wow fadeInLeft text-white" data-wow-duration="1s" data-wow-delay=".4s">Events</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARD AREA -->
+    <div class="container py-5 text-white">
+        <h2>All Events</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4" th:each="event : ${events}">
+                <a th:href="@{'/registration/' + ${event.id}}" class="text-decoration-none">
+                    <div class="card bg-dark text-white h-100">
+                        <img th:src="@{${event.imageUrl}}" class="card-img-top" style="height:200px; object-fit:cover;">
+                        <div class="card-body">
+                            <h5 class="card-title" th:text="${event.title}">Event Title</h5>
+                            <p class="card-text" th:text="${#dates.format(event.date, 'dd MMM yyyy')}"></p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
