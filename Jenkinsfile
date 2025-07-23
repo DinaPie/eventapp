@@ -1,37 +1,34 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'docker:24.0.2-dind'
+            args '-u root --privileged -v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
+
 
     stages {
-        stage('Clone') {
+        stage('Install Java & Maven, then Build JAR') {
             steps {
-                git 'https://github.com/DinaPie/eventapp.git'
+                sh '''
+                apk add --no-cache openjdk17 maven
+                mvn clean package -DskipTests
+                '''
             }
         }
 
-        stage('Build') {
-            steps {
-                sh './mvnw clean package -DskipTests'
-                sh './mvnw install -DskipTests'
-            }
-        }
 
-        stage('Docker Build') {
+        stage('Build Docker Image') {
             steps {
                 sh 'docker build -t eventapp .'
             }
         }
 
-        stage('Docker Run') {
-            steps {
-                sh 'docker run -d -p 8080:8080 --name eventapp-container eventapp'
-            }
-        }
-    }
 
-    post {
-        always {
-            sh 'docker stop eventapp-container || true'
-            sh 'docker rm eventapp-container || true'
+        stage('Run Docker Container') {
+            steps {
+                sh 'docker run -d -p 8080:8080 eventapp'
+            }
         }
     }
 }
