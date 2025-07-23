@@ -103,14 +103,14 @@
                     <!-- Answers -->
                     <td>
                         <ul>
-                            <li th:each="a : ${reg.answers}">
-                                <span th:if="${a.answer != null}" th:text="${a.answer}"></span>
-                                <ul th:if="${a.answerList != null}">
-                                    <li th:each="val : ${a.answerList}" th:text="${val}"></li>
-                                </ul>
-                            </li>
+                              <th:block th:each="a : ${reg.answers}">
+                                <li th:if="${a.answer != null}" th:text="${a.answer}"></li>
+                              <th:block th:if="${a.answerList != null}">
+                                <li th:each="val : ${a.answerList}" th:text="${val}"></li>
+                              </th:block>
+                              </th:block>
                         </ul>
-                    </td>
+                   </td>
                 </tr>
                 </tbody>
             </table>
