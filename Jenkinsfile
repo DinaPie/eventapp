@@ -10,8 +10,8 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh './mvnw clean package'		
-		        sh './mvnw clean install -DskipTests'
+                sh './mvnw clean package -DskipTests'
+                sh './mvnw install -DskipTests'
             }
         }
 
@@ -23,8 +23,15 @@ pipeline {
 
         stage('Docker Run') {
             steps {
-                sh 'docker run -d -p 8080:8080 --name eventapp-container eventapp'
+                sh 'docker run -d -p 8080:8080 eventapp'
             }
+        }
+    }
+
+    post {
+        always {
+            sh 'docker stop eventapp-container || true'
+            sh 'docker rm eventapp-container || true'
         }
     }
 }
