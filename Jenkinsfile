@@ -23,7 +23,7 @@ pipeline {
 
         stage('Docker Run') {
             steps {
-                sh 'docker run -d -p 8080:8080 eventapp'
+                sh 'docker run -d -p 8080:8080 --name eventapp-container eventapp'
             }
         }
     }
