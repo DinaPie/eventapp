@@ -9,3 +9,6 @@ COPY ${JAR_FILE} app.jar
 
 # Run the jar file
 ENTRYPOINT ["java", "-jar", "/app.jar"]
+
+# images
+COPY uploads/ uploads/
